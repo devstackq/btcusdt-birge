@@ -1,0 +1,17 @@
+#line {
+  fill: none;
+  stroke: #00f;
+  stroke-width: 40px;
+}
+.point {
+  fill: #f00;
+  stroke: none;
+}
+#app {
+  width: 100%;
+  /* max-width: 1000vw; */
+  /* height: 1000%; */
+}
+#app svg {
+  overflow-x: scroll;
+}
