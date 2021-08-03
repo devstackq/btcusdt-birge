@@ -23,7 +23,9 @@ type JsonResponse struct {
 	Type   string  `json:"type"`
 	Time   int64   `json:"time"`
 	MinBid float64 `json:"minbid"`
+	MinAsk float64 `json:"minask"`
 	MaxAsk float64 `json:"maxask"`
+	MaxBid float64 `json:"maxbid"`
 }
 
 type WsBinaceData struct {
@@ -60,7 +62,8 @@ func handleWsClient(w http.ResponseWriter, r *http.Request) {
 	go wsGetBtcUdts()
 
 	var wsType WsType
-	var seqDepth = []JsonResponse{}
+	// var seqDepth = []JsonResponse{}
+	// var depth = JsonResponse{}
 
 	for {
 		_, msg, errk := conn.ReadMessage()
@@ -79,15 +82,21 @@ func handleWsClient(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if wsType.Name == "getWsBinanceData" {
-			go func() {
-				seqDepth = append(seqDepth, <-data)
-				conn.WriteJSON(seqDepth)
-			}()
+			// seqDepth = append(seqDepth, <-data)
+			// log.Println(d.MinBid, d.MaxBid, d.Spread)
+			conn.WriteJSON(<-data)
 		}
 		defer conn.Close()
 	}
 }
 
+//38,396.25
+
+//38,421.25
+
+//last item - show binance, last bids
+
+//38,378.65
 //ticker - 1 sec, get new data from trade - aggTrade -> put data in ResponseData
 func wsGetBtcUdts() {
 	//@depth20@100ms get count 20 bids and 20 asks - bidth each 100ms
@@ -98,7 +107,7 @@ func wsGetBtcUdts() {
 	defer c.Close()
 
 	jsonData := JsonResponse{}
-	binData := WsBinaceData{}
+	binData := WsBinaceData{Asks: make([][]interface{}, 5), Bids: make([][]interface{}, 5)}
 
 	for {
 		err = c.ReadJSON(&binData) //bid, ask
@@ -106,20 +115,32 @@ func wsGetBtcUdts() {
 			log.Println("read:", err)
 			return
 		}
-		// go func() {
-		minBid := binData.Bids[len(binData.Asks)-1][0].(string)
-		mb, _ := strconv.ParseFloat(minBid, 64)
-		jsonData.MinBid = mb
+		// log.Println(binData.Bids)
+		go func() {
+			maxBidStr := binData.Bids[0][0].(string)
+			minBidStr := binData.Bids[len(binData.Bids)-1][0].(string)
+			//bids - min ?
+			maxBid, _ := strconv.ParseFloat(maxBidStr, 64)
+			jsonData.MaxBid = maxBid
 
-		maxAsk := binData.Asks[len(binData.Asks)-1][0].(string)
-		ma, _ := strconv.ParseFloat(maxAsk, 64)
-		jsonData.MaxAsk = ma
+			minBid, _ := strconv.ParseFloat(minBidStr, 64)
+			jsonData.MinBid = minBid
 
-		jsonData.Spread = ma - mb
-		jsonData.Type = "newdata"
-		jsonData.Time = time.Now().Local().Unix()
-		//x, y = todo here ?
-		data <- jsonData
+			maxAskStr := binData.Asks[len(binData.Asks)-1][0].(string)
+			maxAsk, _ := strconv.ParseFloat(maxAskStr, 64)
+			jsonData.MaxAsk = maxAsk
+
+			minAskStr := binData.Asks[0][0].(string)
+			minAsk, _ := strconv.ParseFloat(minAskStr, 64)
+			jsonData.MinAsk = minAsk
+
+			jsonData.Spread = maxAsk - minBid
+			//minASk,
+			jsonData.Type = "newdata"
+			jsonData.Time = time.Now().Local().Unix()
+			//x, y = todo here ?
+			data <- jsonData
+		}()
 	}
 }
 
