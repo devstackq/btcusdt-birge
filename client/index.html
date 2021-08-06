@@ -8,16 +8,28 @@
     <title>Chart Btc Usdt</title>
   </head>
   <body>
-    <!-- 10000 10000 10000000 60000 -->
+    <!-- -1000 0 100000 100000" -->
     <div id="app">
       <span id="spread">Spread data:</span>
       <span id="maxBid">Max bid:</span>
+      <span id="minAsk">Min ask:</span>
+      <span id="diff"> Max difference  ask bids:</span>
+
+      <h3>bid chart</h3>
+
       <svg
-        id="chartSvg"
+        id="chartbid"
         width="100%"
         height="100%"
-        viewBox="-1000 0 100000 100000"
+        viewBox="-1000 0 10000 100000"
       ></svg>
+<h3> ask chart</h3>
+      <svg
+      id="chartask"
+      width="100%"
+      height="100%"
+      viewBox="-1000 0 10000 100000"
+    ></svg>
     </div>
   </body>
   <script src="./static/main.js"></script>

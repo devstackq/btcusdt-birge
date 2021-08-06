@@ -1,12 +1,23 @@
-#line {
+#chartbid > #linemaxbid {
   stroke: blue;
   stroke-width: 50px;
   fill: none;
 }
-.point {
+#chartbid > .point {
   fill: violet;
   stroke: none;
 }
+
+#chartask > #lineminask {
+  stroke: red;
+  stroke-width: 50px;
+  fill: none;
+}
+#chartask > .point {
+  fill: green;
+  stroke: none;
+}
+
 #app {
   width: 100%;
 }

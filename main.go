@@ -17,15 +17,18 @@ import (
 // how to render graphic ? get prev data , andalyze, then show new graph ?
 // {"lastUpdateId":12690389951,"bids":[["41634.03000000","0.46010100"],["41632.20000000","0.03058500"],["41632.18000000","0.08230900"],["41632.00000000","0.00240200"],["41631.01000000","0.04946700"]],"asks":[["41634.04000000","0.80552300"],["41634.73000000","0.17000000"],["41636.31000000","0.59072500"],["41636.47000000","0.26180500"],["41636.48000000","0.14400000"]]}
 type JsonResponse struct {
-	Mu     sync.Mutex
-	LastId int64   `json:"lastupdateid"`
-	Spread float64 `json:"spread"`
-	Type   string  `json:"type"`
-	Time   int64   `json:"time"`
-	MinBid float64 `json:"minbid"`
-	MinAsk float64 `json:"minask"`
-	MaxAsk float64 `json:"maxask"`
-	MaxBid float64 `json:"maxbid"`
+	Mu            sync.Mutex
+	LastId        int64   `json:"lastupdateid"`
+	Spread        float64 `json:"spread"`
+	Type          string  `json:"type"`
+	Time          int64   `json:"time"`
+	MinBid        float64 `json:"minbid"`
+	MinAsk        float64 `json:"minask"`
+	MaxAsk        float64 `json:"maxask"`
+	MaxBid        float64 `json:"maxbid"`
+	AmountBid     float64 `json:"amountbid"`
+	AmountAsk     float64 `json:"amountask"`
+	MaxDiffAskBid float64 `json:"maxdiff"`
 }
 
 type WsBinaceData struct {
@@ -90,13 +93,7 @@ func handleWsClient(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//38,396.25
-
-//38,421.25
-
 //last item - show binance, last bids
-
-//38,378.65
 //ticker - 1 sec, get new data from trade - aggTrade -> put data in ResponseData
 func wsGetBtcUdts() {
 	//@depth20@100ms get count 20 bids and 20 asks - bidth each 100ms
@@ -134,8 +131,19 @@ func wsGetBtcUdts() {
 			minAsk, _ := strconv.ParseFloat(minAskStr, 64)
 			jsonData.MinAsk = minAsk
 
-			jsonData.Spread = maxAsk - minBid
-			//minASk,
+			//range each ask, sum / count
+			amountAskAvg := 0.0
+			for _, ask := range binData.Asks {
+				log.Print(ask[1])
+				size, _ := strconv.ParseFloat(ask[1].(string), 64)
+				amountAskAvg += size
+			}
+			log.Println(amountAskAvg, "avg ask count")
+			jsonData.AmountAsk = float64(amountAskAvg)
+			jsonData.MaxDiffAskBid = maxAsk - minBid
+			// jsonData.Spread = maxAsk - minBid
+			jsonData.Spread = minAsk - maxBid
+
 			jsonData.Type = "newdata"
 			jsonData.Time = time.Now().Local().Unix()
 			//x, y = todo here ?
